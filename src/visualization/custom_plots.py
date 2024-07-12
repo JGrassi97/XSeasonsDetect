@@ -101,3 +101,49 @@ def day_of_year_to_date(day_of_year, year=None):
         return fr"{month} {day}{ordinal_suffix}"
     except ValueError:
         return "Invalid day of the year"
+    
+
+
+
+
+
+def plot_seasons_bk_results(result, nrows = 1, ncolumns = None, figsize = None, cmaps = None, titles = None, lims = None):
+
+    n_clusters = result.cluster.size
+
+    if ncolumns is None:
+        ncolumns = n_clusters
+
+    if figsize is None:
+        figsize = (5*n_clusters, 5)
+
+    if cmaps is None:
+        cmaps = ['jet'] * n_clusters
+
+    if titles is None:
+        titles = [''] * n_clusters
+    
+    if lims is None:
+        lims = [None] * n_clusters
+    
+    fig, ax = plt.subplots(nrows, ncolumns, figsize = figsize)
+
+    for j, cmap, title, lim in zip(range(n_clusters), cmaps, titles, lims):
+
+        to_plot = result.sel(cluster=j)
+
+        if lim is None:
+            lev = np.linspace(to_plot.min(),to_plot.max(),6)
+        
+        else:
+            lev = np.linspace(lim[0],lim[1],6)
+        plot = to_plot.plot.contourf(levels=lev, add_colorbar=False, ax = ax[j], cmap=cmap)
+
+        standard_format_single( plot,
+                                country_boundary   = country_boundary,
+                                # world_boundary     = world_boundary,
+                                custom_cbar        = True
+                                )
+
+        plot.colorbar.set_ticks(ticks=lev, labels=[day_of_year_to_date(x) for x in lev])
+        ax[j].set_title(title)
