@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import datetime
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import numpy as np
+
 
 def standard_format_single(plot, country_boundary=None, world_boundary=None, custom_cbar=True):
 
