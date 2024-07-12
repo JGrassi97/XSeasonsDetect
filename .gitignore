@@ -1,0 +1,9 @@
+/data
+
+*.pyc
+*.pyo
+
+build/
+dist/
+
+/src/RCC.egg-info
