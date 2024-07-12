@@ -109,7 +109,7 @@ def day_of_year_to_date(day_of_year, year=None):
 
 
 
-def plot_seasons_bk_results(result, nrows = 1, ncolumns = None, figsize = None, cmaps = None, titles = None, lims = None):
+def plot_seasons_bk_results(result, nrows = 1, ncolumns = None, figsize = None, cmaps = None, titles = None, lims = None, country_boundary = None, world_boundary = None):
 
     n_clusters = result.cluster.size
 
@@ -143,7 +143,7 @@ def plot_seasons_bk_results(result, nrows = 1, ncolumns = None, figsize = None, 
 
         standard_format_single( plot,
                                 country_boundary   = country_boundary,
-                                # world_boundary     = world_boundary,
+                                world_boundary     = world_boundary,
                                 custom_cbar        = True
                                 )
 
