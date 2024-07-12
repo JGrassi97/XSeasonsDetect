@@ -1,4 +1,5 @@
 /data
+.gitignore
 
 *.pyc
 *.pyo
