@@ -57,6 +57,9 @@ def standard_format(plot, country_boundary=None, world_boundary=None, custom_cba
         ax.spines['right'].set_visible(False)
 
         ax.grid(alpha=0.3)
+
+        ax.set_xlim(65, 99)
+        ax.set_ylim(6, 36)
     
     if custom_cbar:
 
