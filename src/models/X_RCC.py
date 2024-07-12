@@ -92,3 +92,98 @@ def XRCC(datasets, **kwargs):
     return result
 
 
+
+
+def X_cluster_with_silhouette(*grid_points, **kwargs):
+    """
+    Perform clustering on multiple variables from grid points and compute silhouette score.
+
+    Parameters:
+    -----------
+    *grid_points : tuple of numpy arrays
+        Input grid points variables to be clustered.
+    **kwargs : keyword arguments
+        Additional parameters for clustering.
+
+    Returns:
+    --------
+    float
+        Silhouette score from clustering.
+    """
+    iters = kwargs.get('iters', 20)
+    n_seas = kwargs.get('n_seas', 2)
+    learning_rate = kwargs.get('learning_rate', 10)
+    min_len = kwargs.get('min_len', 30)
+    mode = kwargs.get('mode', 'single')
+    starting_bp = kwargs.get('starting_bp', [165, 264])
+
+    arrays = []
+    
+    for grid_points_var in grid_points:
+        grid_points_var = np.asarray(grid_points_var)
+        grid_points_var = np.reshape(grid_points_var, (365, int(grid_points_var.size/365)), order='F')
+        
+        if np.isnan(grid_points_var).any():
+            return np.nan
+        
+        arrays.append(grid_points_var)
+    
+    combined_mask = ~np.any([np.all(np.isnan(arr), axis=0) for arr in arrays], axis=0)
+    
+    normalized_arrays = []
+    for arr in arrays:
+        array_tot = arr[:, combined_mask]
+        array_tot = (array_tot - array_tot.min(axis=1).reshape(-1, 1)) / (array_tot.max(axis=1) - array_tot.min(axis=1)).reshape(-1, 1)
+        normalized_arrays.append(array_tot)
+    
+    array_tot = np.concatenate(normalized_arrays, axis=1)
+
+    # Initialize and fit the Radially_Constrained_Cluster model
+    model = Radially_Constrained_Cluster(data_to_cluster=array_tot,
+                                         n_seas=n_seas,
+                                         n_iter=iters,
+                                         learning_rate=learning_rate,
+                                         min_len=min_len,
+                                         mode=mode,
+                                         starting_bp=starting_bp)
+    model.fit()
+    labels = model.get_prediction()
+
+    try:
+        # Calculate the silhouette score
+        silhouette_avg = silhouette_score(array_tot, labels)
+        return silhouette_avg
+
+    except:
+        return np.nan
+
+def XRCC_silhouette(datasets, **kwargs):
+    """
+    Apply clustering function to a list of xarray DataArrays and compute silhouette scores.
+
+    Parameters:
+    -----------
+    datasets : list of xarray DataArrays
+        Input datasets to be clustered.
+    **kwargs : keyword arguments
+        Additional parameters for clustering.
+
+    Returns:
+    --------
+    xarray.DataArray
+        Silhouette scores for each point grid.
+    """
+    result = xr.apply_ufunc(
+        X_cluster_with_silhouette,
+        *datasets,
+        kwargs=kwargs,
+        input_core_dims=[['time']] * len(datasets),
+        output_core_dims=[[]],
+        vectorize=True,
+        dask='parallelized',
+        output_dtypes=[float]
+    )
+
+    return result
+
+
