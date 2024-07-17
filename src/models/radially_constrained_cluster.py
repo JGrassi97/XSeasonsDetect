@@ -57,30 +57,7 @@ class Radially_Constrained_Cluster(object):
         if self.mode == 'single':
             self.breakpoints, self.centroid_history, self.error_history, self.breakpoint_history, self.learningrate_history, self.prediction_history =  self.single_fit()
 
-
-        ### THE ENSEMBLE MODE IS STILL SPERIMENTAL ###
-        ### The randomization process of the parameters must be improved ###
-        # Ensemble mode fit: multiple fit with stochastic parameters
-        # if self.mode == 'ensemble_stochastic':
-
-        #     # Defining list for metrics saving
-        #     err = []
-        #     bd = []
-
-        #     # Main loop
-        #     for j in range(self.n_ensemble):
-                
-        #         self.min_len = self.min_len + randint(-int(self.min_len/self.s_factor),int(self.min_len/self.s_factor))
-        #         self.learning_rate = self.learning_rate + randint(-int(self.learning_rate/self.s_factor),int(self.learning_rate/self.s_factor))
-        #         self.scheduling_factor = self.scheduling_factor + randint(-int(self.scheduling_factor/self.s_factor),int(self.scheduling_factor/self.s_factor))
-        #         self.n_iter = self.n_iter + randint(-int(self.n_iter/self.s_factor),int(self.n_iter/self.s_factor))
-
-        #         self.breakpoints, self.centroid_story , self.error_story =  self.single_fit()
-
-        #         err.append(self.error_story[self.n_iter-1])
-        #         bd.append(np.sort(self.breakpoints))
-            
-        #     self.breakpoints = np.int32(np.mean(bd,axis=0))
+        ### THE ENSEMBLE MODE IS STILL TO BE DEVELOPED ###
 
 
 
