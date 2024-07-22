@@ -4,6 +4,7 @@ from .radially_constrained_cluster import Radially_Constrained_Cluster  # Adjust
 from sklearn.metrics import silhouette_score
 
 def X_cluster(*grid_points, **kwargs):
+    
     """
     Perform clustering on multiple variables from grid points.
 
