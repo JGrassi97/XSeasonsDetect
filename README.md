@@ -5,3 +5,6 @@
 The tool is built upon two Machine Learning algorithms: 
 - A *Radially Constrained Clustering* 
 - A *Perceptron*
+
+
+ PROVA GIT LOAD: SUCCESS
