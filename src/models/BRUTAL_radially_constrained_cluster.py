@@ -76,7 +76,7 @@ class Radially_Constrained_Cluster(object):
 
     def single_fit(self):
 
-        n_days = list(np.arange(0,365,5))
+        n_days = list(np.arange(0,365,3))
 
         best_error = float('inf')
         best_combination = None
