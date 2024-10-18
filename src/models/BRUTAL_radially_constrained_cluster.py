@@ -2,6 +2,7 @@ from random import randint
 import numpy as np
 from itertools import combinations
 from tqdm import tqdm
+import CRPS.CRPS as pscore
 
 class Radially_Constrained_Cluster(object):
 
@@ -76,7 +77,7 @@ class Radially_Constrained_Cluster(object):
 
     def single_fit(self):
 
-        n_days = list(np.arange(0,365,3))
+        n_days = list(np.arange(0,365,10))
 
         best_error = float('inf')
         best_combination = None
@@ -244,17 +245,89 @@ class Radially_Constrained_Cluster(object):
         return len_ok
 
 
-def compute_metrics(n_season, data_to_cluster, idx):
+# def compute_metrics(n_season, data_to_cluster, idx):
 
+#     centroids = []
+#     error = []
+
+#     for i in range(n_season):
+                
+#         centroids.append(np.nanmean(data_to_cluster[idx[i]], axis = 0))
+#         error.append(np.nansum(np.power(data_to_cluster[idx[i]]-centroids[i],2), axis = 0))
+
+#     return centroids, error
+
+
+def compute_metrics(n_season, data_to_cluster, idx, metric='euclidean', p=2, covariance_matrix=None):
+    """
+    Calcola i centroidi e l'errore per ciascun cluster utilizzando diverse metriche.
+
+    Parameters:
+    n_season (int): Numero di cluster.
+    data_to_cluster (array): Array di dati da clusterizzare.
+    idx (list of arrays): Lista di indici per ciascun cluster.
+    metric (str): La metrica da utilizzare per il calcolo dell'errore.
+                  Opzioni: 'euclidean', 'manhattan', 'chebyshev', 'minkowski', 
+                           'cosine', 'hamming', 'jaccard', 'mahalanobis'
+    p (int): Parametro per la distanza di Minkowski (solo se metric='minkowski').
+    covariance_matrix (array): Matrice di covarianza per la distanza di Mahalanobis.
+
+    Returns:
+    centroids (list): Lista dei centroidi per ciascun cluster.
+    error (list): Lista degli errori per ciascun cluster secondo la metrica scelta.
+    """
     centroids = []
     error = []
 
     for i in range(n_season):
-                
-        centroids.append(np.nanmean(data_to_cluster[idx[i]], axis = 0))
-        error.append(np.nansum(np.power(data_to_cluster[idx[i]]-centroids[i],2), axis = 0))
+        # Otteniamo i dati del cluster corrente
+        data_cluster = data_to_cluster[idx[i]]
+
+        # Calcolo del centroide (media ignorando i NaN)
+        centroid = np.nanmean(data_cluster, axis=0)
+        centroids.append(centroid)
+        
+        # Calcoliamo l'errore in base alla metrica scelta
+        if metric == 'euclidean':
+            # Distanza Euclidea
+            error.append(np.nansum(np.power(data_cluster - centroid, 2)))
+
+        elif metric == 'manhattan':
+            # Distanza di Manhattan (L1)
+            error.append(np.nansum(np.abs(data_cluster - centroid)))
+
+        elif metric == 'chebyshev':
+            # Distanza di Chebyshev (massima distanza su un asse)
+            error.append(np.nanmax(np.abs(data_cluster - centroid)))
+
+        elif metric == 'minkowski':
+            # Distanza di Minkowski (generale)
+            error.append(np.nansum(np.power(np.abs(data_cluster - centroid), p))**(1/p))
+
+        # elif metric == 'cosine':
+        #     # Distanza Coseno (usando il vettore medio come centroide)
+        #     error.append(np.nansum([cosine(row, centroid) for row in data_cluster]))
+
+        # elif metric == 'hamming':
+        #     # Distanza di Hamming (per dati categoriali o binari)
+        #     error.append(np.nansum([hamming(row, centroid) for row in data_cluster]))
+
+        # elif metric == 'jaccard':
+        #     # Distanza di Jaccard (per vettori binari)
+        #     error.append(np.nansum([jaccard(row, centroid) for row in data_cluster]))
+
+        # elif metric == 'mahalanobis':
+        #     # Distanza di Mahalanobis (richiede una matrice di covarianza)
+        #     if covariance_matrix is None:
+        #         raise ValueError("Per la distanza di Mahalanobis è necessaria una matrice di covarianza.")
+        #     inv_covmat = np.linalg.inv(covariance_matrix)
+        #     error.append(np.nansum([mahalanobis(row, centroid, inv_covmat) for row in data_cluster]))
+
+        else:
+            raise ValueError(f"Metrica non riconosciuta: {metric}")
 
     return centroids, error
+
 
 
 
