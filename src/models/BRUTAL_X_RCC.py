@@ -32,8 +32,7 @@ import math
 """
 
 
-
-def X_cluster(*grid_points: np.ndarray, **kwargs) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def X_cluster(*grid_points: list[xr.DataArray], **kwargs) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
 
     """
     Perform clustering on multiple variables from grid points.
@@ -51,41 +50,59 @@ def X_cluster(*grid_points: np.ndarray, **kwargs) -> tuple[np.ndarray, np.ndarra
         Array of breakpoints, error history, and silhouette scores.
     """
 
+    # TODO:
+    #   - Implement different normalization methods
+    #   - Implement optimized method for silhouette score calculation
+    #   - Add a min length parameter to avoid clustering on short time series
+
+    # -- 0. PARAMETERS 
     n_days = kwargs.get('n_days', 20)  
     n_seas = kwargs.get('n_seas', 2)
     # min_len = kwargs.get('min_len', 30) # NON IMPLEMENTATO MA DA CAPIRE SE METTERLO
 
-    # Numero di combinazioni
+    # Deriving the number of total iterations as the binomial coefficient of the number of days and seasons
     iters = math.comb(len(n_days), n_seas)
 
-    arrays = []
+
+    # -- 1. CREATION OF THE NORMALIZED ARRAY
+    # In this section a list of xarray.DataArrays is converted into the design matrix for clustering. 
+    # The matrix ha dimension (365, n_variables * n_years)
+
+    arrays = [] # List for storing the normalized arrays
     
+    # Iterating over all the xarray.DataArrays
     for grid_points_var in grid_points:
         grid_points_var = np.asarray(grid_points_var)
-        grid_points_var = np.reshape(grid_points_var, (365, int(grid_points_var.size/365)), order='F')
+        grid_points_var = np.reshape(grid_points_var, (365, int(grid_points_var.size/365)), order='F')  # Reshape the array to (365, n_years)
         
+        # Check if this is an empty grid point. In this case return NaN arrays. This can happen if the original xarra.DataArray has been masked.
         if np.isnan(grid_points_var).any():
             return (np.full(n_seas, np.nan), np.full(iters, np.nan), np.full(iters, np.nan))
         
+        # Append the normalized array to the list
         arrays.append(grid_points_var)
     
-    # Combiniamo le maschere per gestire i NaN
+
+    # -- 2. NORMALIZATION OF THE VARIABLES
+    # Create a boolean mask indicating which columns across all arrays do not contain any NaN values - needed for the normalization.
     combined_mask = ~np.any([np.all(np.isnan(arr), axis=0) for arr in arrays], axis=0)
     
-    # Normalizziamo le variabili
+    # Normalizzing the variables along the columns - each variable is normalized separately
     normalized_arrays = []
     for arr in arrays:
         array_tot = arr[:, combined_mask]
-        array_tot = (array_tot - array_tot.min(axis=1).reshape(-1, 1)) / (array_tot.max(axis=1) - array_tot.min(axis=1)).reshape(-1, 1)
+        array_tot = (array_tot - array_tot.min(axis=0)) / (array_tot.max(axis=0) - array_tot.min(axis=0))
         normalized_arrays.append(array_tot)
     
-    # Unione delle variabili normalizzate
+    # Now all the normalized variables can be joined in the same array
     array_tot = np.concatenate(normalized_arrays, axis=1)
 
-    # Utilizza la funzione single_fit_optimized
+    # -- 3. CLUSTERING
+    # The function returns he optimal breakpoints and the diagnostic of the run
     breakpoints, error_history, breakpoint_history = single_fit_optimized(data_to_cluster=array_tot, n_seas=n_seas, n_days=n_days)
 
-    # TODO: vectorize this piece of code to avoid for loop [VERY SLOW]
+
+    # Vectorize this piece of code to avoid for loop [VERY SLOW]
     # Silhouette Scores
     silhouette_scores = np.zeros((len(breakpoint_history), 1)).squeeze()
 
