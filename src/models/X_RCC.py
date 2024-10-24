@@ -22,8 +22,7 @@ def X_cluster(*grid_points, **kwargs):
             # Restituisci sempre 4 output
             return (np.full(n_seas, np.nan), 
                     np.full(iters, np.nan), 
-                    np.full(iters, np.nan), 
-                    np.full(iters, np.nan))  # Quarto output qui
+                    np.full(iters, np.nan))  # Quarto output qui 
         
         arrays.append(grid_points_var)
     
@@ -60,10 +59,7 @@ def X_cluster(*grid_points, **kwargs):
         except:
             silhouette_scores.append(np.nan)
 
-    # Verifica gli output
-    print(f"Breakpoints: {breakpoints.shape}, Error History: {error_history.shape}, Silhouette Scores: {silhouette_scores}, Breakpoint History: {breakpoint_history.shape}")
-
-    return (breakpoints, error_history, silhouette_scores, breakpoint_history)
+    return (breakpoints, error_history, silhouette_scores)
 
 def XRCC(datasets, **kwargs):
     """
@@ -87,19 +83,17 @@ def XRCC(datasets, **kwargs):
         *datasets,
         kwargs=kwargs,
         input_core_dims=[['time']] * len(datasets),
-        output_core_dims=[['cluster'] ,['iter'], ['iter'], ['iter']],
+        output_core_dims=[['cluster'] ,['iter'], ['iter']],
         vectorize=True,
         dask='parallelized',
-        output_dtypes=[float,float, float, float]
+        output_dtypes=[float,float, float]
     )
 
-    breakpoints, error_history, silhouette_scores, breakpoints_history = result
-
+    breakpoints, error_history, silhouette_scores = result
 
     breakpoints = xr.DataArray(breakpoints, dims=['lat', 'lon', 'cluster'])
     error_history_da = xr.DataArray(error_history, dims=['lat', 'lon','iter'])
     silhouette_scores_da = xr.DataArray(silhouette_scores, dims=['lat', 'lon', 'iter'])
-    breakpoints_history_da = xr.DataArray(breakpoints_history, dims=['lat', 'lon', 'iter', 'cluster'])
 
 
-    return breakpoints, error_history_da, silhouette_scores_da, breakpoints_history_da
+    return breakpoints, error_history_da, silhouette_scores_da
