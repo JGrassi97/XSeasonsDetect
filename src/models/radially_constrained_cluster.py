@@ -1,9 +1,14 @@
 from random import randint
 import numpy as np
 
+from scipy.spatial.distance import cosine
+from scipy.spatial.distance import hamming
+from scipy.spatial.distance import jaccard, braycurtis
+
+
 class Radially_Constrained_Cluster(object):
 
-    def __init__(self, data_to_cluster, n_seas, n_iter = 1000, learning_rate = 1, scheduling_factor = 1, min_len = 1, mode = 'single', n_ensemble = 1000, s_factor = 0.1, starting_bp=None):
+    def __init__(self, data_to_cluster, n_seas, n_iter = 1000, learning_rate = 1, scheduling_factor = 1, min_len = 1, mode = 'single', n_ensemble = 1000, s_factor = 0.1, starting_bp=None, metric='euclidean'):
 
         '''
             Mandatory parameters:
@@ -43,6 +48,7 @@ class Radially_Constrained_Cluster(object):
         self.mode = mode
         self.s_factor = s_factor
         self.n_ensemble = n_ensemble
+        self.metric = metric
 
 
     def fit(self):
@@ -104,9 +110,9 @@ class Radially_Constrained_Cluster(object):
                 self.prediction = self.get_prediction()
                 prediction_history.append(self.prediction)
 
-                centroids, error = compute_metrics(self.n_seas, self.data_to_cluster, idx)
+                centroids, error = compute_metrics(self.n_seas, self.data_to_cluster, idx, self.metric)
                 centroid_list.append(centroids)
-                error_list.append(np.sum(error))
+                error_list.append(np.nanmean(error))
                 learningrate_list.append(self.learning_rate)
 
                 # Skipping first iteration
@@ -125,7 +131,7 @@ class Radially_Constrained_Cluster(object):
             else:
                 b = downgrade_breakpoints(self.n_seas, b, upgrade, self.len_serie)
                 idx = self.generate_season_idx(b)
-                centroids, error = compute_metrics(self.n_seas, self.data_to_cluster, idx)
+                centroids, error = compute_metrics(self.n_seas, self.data_to_cluster, idx, self.metric)
 
         return np.sort(np.int32(b)), np.float64(centroid_list), np.float64(error_list), np.int32(breakpoint_list), np.int32(learningrate_list), np.int32(prediction_history)
     
@@ -206,7 +212,7 @@ class Radially_Constrained_Cluster(object):
 
         idx = self.generate_season_idx(self.breakpoints)
 
-        centroids, error = compute_metrics(self.n_seas, self.data_to_cluster, idx)
+        centroids, error = compute_metrics(self.n_seas, self.data_to_cluster, idx, self.metric)
 
         return np.sum(error)
     
@@ -216,7 +222,7 @@ class Radially_Constrained_Cluster(object):
 
         idx = self.generate_season_idx(self.breakpoints)
 
-        centroids, error = compute_metrics(self.n_seas, self.data_to_cluster, idx)
+        centroids, error = compute_metrics(self.n_seas, self.data_to_cluster, idx, self.metric)
 
         return centroids
         
@@ -269,15 +275,62 @@ class Radially_Constrained_Cluster(object):
         return len_ok
 
 
-def compute_metrics(n_season, data_to_cluster, idx):
+def compute_metrics(n_season, data_to_cluster, idx, metric='euclidean', p=2):
+    """
+    Calcola i centroidi e l'errore per ciascun cluster utilizzando diverse metriche.
 
+    Parameters:
+    n_season (int): Numero di cluster.
+    data_to_cluster (array): Array di dati da clusterizzare.
+    idx (list of arrays): Lista di indici per ciascun cluster.
+    metric (str): La metrica da utilizzare per il calcolo dell'errore.
+                  Opzioni: 'euclidean', 'manhattan', 'chebyshev', 'minkowski', 
+                           'cosine', 'hamming', 'jaccard', 'mahalanobis'
+    p (int): Parametro per la distanza di Minkowski (solo se metric='minkowski').
+    covariance_matrix (array): Matrice di covarianza per la distanza di Mahalanobis.
+
+    Returns:
+    centroids (list): Lista dei centroidi per ciascun cluster.
+    error (list): Lista degli errori per ciascun cluster secondo la metrica scelta.
+    """
     centroids = []
     error = []
 
     for i in range(n_season):
-                
-        centroids.append(np.nanmean(data_to_cluster[idx[i]], axis = 0))
-        error.append(np.nansum(np.power(data_to_cluster[idx[i]]-centroids[i],2), axis = 0))
+        # Otteniamo i dati del cluster corrente
+        data_cluster = data_to_cluster[idx[i]]
+
+        # Calcolo del centroide (media ignorando i NaN)
+        centroid = np.nanmean(data_cluster, axis=0)
+        centroids.append(centroid)
+        
+        # Calcoliamo l'errore in base alla metrica scelta
+        if metric == 'euclidean':
+            # Distanza Euclidea
+            error.append(np.nansum(np.power(data_cluster - centroid, 2)))
+
+        elif metric == 'manhattan':
+            # Distanza di Manhattan (L1)
+            error.append(np.nansum(np.abs(data_cluster - centroid)))
+
+        elif metric == 'chebyshev':
+            # Distanza di Chebyshev (massima distanza su un asse)
+            error.append(np.nanmax(np.abs(data_cluster - centroid)))
+
+        elif metric == 'minkowski':
+            # Distanza di Minkowski (generale)
+            error.append(np.nansum(np.power(np.abs(data_cluster - centroid), p))**(1/p))
+
+        elif metric == 'cosine':
+            # Distanza Coseno (usando il vettore medio come centroide)
+            error.append(np.nansum([cosine(row, centroid) for row in data_cluster]))
+        
+        elif metric == 'braycurtis':
+            # Distanza di Bray-Curtis
+            error.append(np.nansum([braycurtis(row, centroid) for row in data_cluster]))
+
+        else:
+            raise ValueError(f"Metrica non riconosciuta: {metric}")
 
     return centroids, error
 

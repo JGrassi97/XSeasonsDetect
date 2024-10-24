@@ -128,6 +128,7 @@ def X_cluster(*grid_points: list[xr.DataArray], **kwargs) -> tuple[np.ndarray, n
 
 # Funzione XRCC per il clustering applicato agli xarray
 def XRCC(datasets, **kwargs):
+    
     """
     Apply clustering function to a list of xarray DataArrays.
 
