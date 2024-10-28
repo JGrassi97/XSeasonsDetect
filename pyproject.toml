@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "RCC"
+version = "0.1.0"
+description = "A brief description of the project"
+authors = ["Jacopo Grassi <jacopo.grassi@polito.it>"]
+license = "Apache"
+readme = "README.md"
+packages = [
+    { include = "models", from = "src" },
+    # { include = "utils", from = "src" },
+    { include = "visualization", from = "src" },
+    # { include = "preprocessing", from = "src" },
+    # { include = "scripts", from = "src" } 
+]
+
+[tool.poetry.dependencies]
+python = ">=3.1"
+numpy = ">=1.18.0"
+pandas = ">=1.0.0"
+scikit-learn = ">=0.22.0"
+matplotlib = ">=3.1.0"
+seaborn = ">=0.10.0"
+
+[tool.poetry.dev-dependencies]
+pytest = ">=5.3.5"
+jupyterlab = ">=2.0.0"
+flake8 = "*"
+black = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
