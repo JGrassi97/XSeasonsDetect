@@ -8,3 +8,6 @@ build/
 dist/
 
 /src/RCC.egg-info
+/src/XSeasonDetect.egg-info
+
+/src/scripts/__pycache__
