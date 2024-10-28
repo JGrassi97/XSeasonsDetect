@@ -1,12 +1,13 @@
 import numpy as np
 import xarray as xr
-from .BRUTAL_radially_constrained_cluster import single_fit_optimized, generate_season_idx  # Importiamo la nuova funzione ottimizzata
+from .deterministic_radially_constrained_cluster import single_fit_optimized, generate_season_idx  # Importiamo la nuova funzione ottimizzata
 from sklearn.metrics import silhouette_score
 import math
+import itertools
 
 
 """
-    This script implements the xarray-compatible version of the BRUTAL clustering algorithm, which is used for 
+    This script implements the xarray-compatible version of the deterministic clustering algorithm, which is used for 
     clustering time series data across spatial grids. The script provides two primary functions:
 
     1. X_cluster: 
@@ -58,7 +59,9 @@ def X_cluster(*grid_points: list[xr.DataArray], **kwargs) -> tuple[np.ndarray, n
     # -- 0. PARAMETERS 
     n_days = kwargs.get('n_days', 20)  
     n_seas = kwargs.get('n_seas', 2)
-    # min_len = kwargs.get('min_len', 30) # NON IMPLEMENTATO MA DA CAPIRE SE METTERLO
+    metric = kwargs.get('metric', 'euclidean')
+
+
 
     # Deriving the number of total iterations as the binomial coefficient of the number of days and seasons
     iters = math.comb(len(n_days), n_seas)
@@ -99,13 +102,14 @@ def X_cluster(*grid_points: list[xr.DataArray], **kwargs) -> tuple[np.ndarray, n
 
     # -- 3. CLUSTERING
     # The function returns he optimal breakpoints and the diagnostic of the run
-    breakpoints, error_history, breakpoint_history = single_fit_optimized(data_to_cluster=array_tot, n_seas=n_seas, n_days=n_days)
+    breakpoints, error_history, breakpoint_history = single_fit_optimized(data_to_cluster=array_tot, n_seas=n_seas, n_days=n_days, metric=metric)
 
 
     # Vectorize this piece of code to avoid for loop [VERY SLOW]
     # Silhouette Scores
     silhouette_scores = np.zeros((len(breakpoint_history), 1)).squeeze()
 
+    # silhouette_scores = []
     # for bp in breakpoint_history:
     #     prediction = np.zeros((array_tot.shape[0], 1))  # Prepara il vettore delle predizioni
 
@@ -126,8 +130,8 @@ def X_cluster(*grid_points: list[xr.DataArray], **kwargs) -> tuple[np.ndarray, n
 
 
 
-# Funzione XRCC per il clustering applicato agli xarray
-def XRCC(datasets, **kwargs):
+
+def XRCC(datasets: list[xr.DataArray], **kwargs) -> tuple[xr.DataArray, xr.DataArray, xr.DataArray]:
     
     """
     Apply clustering function to a list of xarray DataArrays.
@@ -145,6 +149,7 @@ def XRCC(datasets, **kwargs):
         Result of clustering operation including breakpoints, 
         error history, and silhouette scores.
     """
+
     result = xr.apply_ufunc(
         X_cluster,
         *datasets,
@@ -158,6 +163,7 @@ def XRCC(datasets, **kwargs):
 
     breakpoints, error_history, silhouette_scores = result
 
+    breakpoints = xr.DataArray(breakpoints, dims=['lat', 'lon', 'cluster'])
     error_history_da = xr.DataArray(error_history, dims=['lat', 'lon', 'iter'])
     silhouette_scores_da = xr.DataArray(silhouette_scores, dims=['lat', 'lon', 'iter'])
 

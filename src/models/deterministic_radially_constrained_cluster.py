@@ -61,7 +61,7 @@ def crps_vectorized(x):
     
     return crps_values
 
-def compute_metrics(n_season, data_to_cluster, idx, metric='euclidean', p=2):
+def compute_metrics(n_season, data_to_cluster, idx, metric, p=2):
     """
     Calcola i centroidi e l'errore per ciascun cluster utilizzando diverse metriche.
 
@@ -148,7 +148,8 @@ def single_fit_optimized(data_to_cluster, n_seas, n_days, metric='euclidean'):
     breakpoint_list = []
     prediction_history = []
     best_combination = None
-    
+
+
     # Per ogni combinazione dei breakpoint calcola l'errore totale
     for combination in tqdm(combinations(n_days, n_seas)):
         b = list(combination)
@@ -158,15 +159,15 @@ def single_fit_optimized(data_to_cluster, n_seas, n_days, metric='euclidean'):
         idx = generate_season_idx(b, len(data_to_cluster), n_seas)
         prediction_history.append(idx)
         
-        if check_season_len(idx, n_seas):
-            centroids, error = compute_metrics(n_seas, data_to_cluster, idx, metric)
-            total_error = np.nanmean(error)
-            error_list.append(total_error)
-            
-            # Aggiorna se si trova un errore migliore
-            if total_error < best_error:
-                best_error = total_error
-                best_combination = b
+        #if check_season_len(idx, n_seas):
+        centroids, error = compute_metrics(n_seas, data_to_cluster, idx, metric)
+        total_error = np.nanmean(error)
+        error_list.append(total_error)
+        
+        # Aggiorna se si trova un errore migliore
+        if total_error < best_error:
+            best_error = total_error
+            best_combination = b
 
     return np.sort(np.int32(best_combination)), np.float64(error_list), np.int32(breakpoint_list)
 
