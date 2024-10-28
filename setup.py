@@ -8,8 +8,8 @@ setup(
     long_description_content_type='text/markdown',
     author='Jacopo Grassi',
     author_email='jacopo.grassi@polito.it',
-    packages=find_packages(where='src'),  # Automatically find packages in 'src'
-    package_dir={'': 'src'},  # Indicate that packages are under the 'src' directory
+    packages=find_packages(where='src'),  
+    package_dir={'': 'src'}, 
     include_package_data=True,
     install_requires=[
         # Add your package dependencies here
