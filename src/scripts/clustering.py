@@ -30,8 +30,12 @@ def main():
     # Parse the arguments
     args = parser.parse_args()
 
+    setting_file = os.path.join(os.getcwd(),'config', args.exp_setting)
+    if not os.path.exists(setting_file):
+        raise FileNotFoundError(f'The file {setting_file} does not exist')
+
     # Load the settings
-    with open(os.path.join(os.getcwd(),'config', args.exp_setting), 'r') as file:
+    with open(setting_file, 'r') as file:
         settings = yaml.load(file, Loader=yaml.FullLoader)
     
     # Load variables as stored in the settings['parameters']

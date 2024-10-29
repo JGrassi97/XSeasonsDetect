@@ -51,6 +51,9 @@ def main():
             else:
                 print('Invalid input, skipping folder')
                 continue
+        
+        else:
+            standard_preprocess(raw_path, temp_path, preprocess_path, 1968, 2019, target_grid_path, boundary, 15, True, 'final')
 
 
 
