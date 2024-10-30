@@ -130,7 +130,7 @@ def plot_seasons_bk_results(result,
             lev = np.linspace(lim[0], lim[1], nlevs)
         
         # Plot contour fill for current cluster
-        plot = to_plot.plot.contourf(levels=lev, add_colorbar=False, ax=ax, cmap=cmap)
+        plot = to_plot.plot(levels=lev, add_colorbar=False, ax=ax, cmap=cmap)
 
         # Apply formatting and optional boundaries
         standard_format_single(plot,

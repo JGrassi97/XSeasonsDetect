@@ -45,7 +45,7 @@ def main():
     datasets = []
 
     for variable, code in zip(variables, variable_codes):
-        dataset = xr.open_mfdataset(f'../data/preprocessed/ERA5/{variable}/final.nc')[code].load()
+        dataset = xr.open_mfdataset(f'{os.getcwd()}/data/preprocessed/ERA5/{variable}/final.nc')[code].load()
         datasets.append(dataset)
     
     # Standardize the datasets time as the one of the first dataset
@@ -70,7 +70,10 @@ def main():
 
     breakpoints, error_history_da, silhouette_scores_da = XRCC(datasets, **clustering_params)
 
+    # Merge the results into a single xr.DataSet [error_history and silhouette_scores have an additional dimension 'iters']
+    results = xr.merge([breakpoints.rename('breakpoints'), error_history_da.rename('error_history'), silhouette_scores_da.rename('silhouette_scores')])
+
     name = settings['name']
 
     # Save the breakpoints
-    breakpoints.to_netcdf(os.path.join(os.getcwd(),'results', 'files', f'{name}.nc'))
+    results.to_netcdf(os.path.join(os.getcwd(),'results', 'files', f'{name}.nc'))
