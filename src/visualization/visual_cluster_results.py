@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import datetime
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
-
+import cartopy.crs as ccrs
 
 
 # -- TO MOVE IN UTILS
@@ -130,7 +130,7 @@ def plot_seasons_bk_results(result,
             lev = np.linspace(lim[0], lim[1], nlevs)
         
         # Plot contour fill for current cluster
-        plot = to_plot.plot(levels=lev, add_colorbar=False, ax=ax, cmap=cmap)
+        plot = to_plot.plot(levels=lev, add_colorbar=False, ax=ax, cmap=cmap)    
 
         # Apply formatting and optional boundaries
         standard_format_single(plot,
