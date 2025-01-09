@@ -1,6 +1,7 @@
 /data
 /INDIA
 /EUROPE
+/notebooks
 
 .gitignore
 
@@ -14,3 +15,4 @@ dist/
 /src/XSeasonDetect.egg-info
 
 /src/scripts/__pycache__
+

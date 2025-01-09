@@ -5,12 +5,14 @@ from sklearn.metrics import silhouette_score
 
 
 def X_cluster(*grid_points, **kwargs):
+
     iters = kwargs.get('iters', 20)  
     n_seas = kwargs.get('n_seas', 2)
     learning_rate = kwargs.get('learning_rate', 10)
     min_len = kwargs.get('min_len', 30)
     mode = kwargs.get('mode', 'single')
     starting_bp = kwargs.get('starting_bp', [165, 264])
+    weights = kwargs.get('weights', [1])
 
     arrays = []
     
@@ -29,10 +31,10 @@ def X_cluster(*grid_points, **kwargs):
     combined_mask = ~np.any([np.all(np.isnan(arr), axis=0) for arr in arrays], axis=0)
     
     normalized_arrays = []
-    for arr in arrays:
+    for arr, weight in zip(arrays, weights):
         array_tot = arr[:, combined_mask]
         array_tot = (array_tot - array_tot.min(axis=1).reshape(-1, 1)) / (array_tot.max(axis=1) - array_tot.min(axis=1)).reshape(-1, 1)
-        normalized_arrays.append(array_tot)
+        normalized_arrays.append(array_tot * weight)
     
     array_tot = np.concatenate(normalized_arrays, axis=1)
 

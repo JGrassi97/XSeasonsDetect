@@ -234,13 +234,6 @@ class Radially_Constrained_Cluster(object):
         return idx
 
 
-
-
-
-
-
-
-
     def generate_season_idx(self, b):
 
         idx = []

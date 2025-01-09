@@ -47,12 +47,10 @@ def main():
     datasets = []
 
     for variable, code in zip(variables, variable_codes):
-        dataset = xr.open_mfdataset(variable)[code].load()
-        print(variable)
+        dataset = xr.open_mfdataset(f'{os.getcwd()}/data/preprocessed/ERA5/{variable}/final.nc')[code].load()
         if args.start is not None and args.end is not None:
             dataset = dataset.sel(time=slice(f'{args.start}', f'{args.end}'))
         datasets.append(dataset)
-        print(datasets)
     
     # Standardize the datasets time as the one of the first dataset
     for i in range(1, len(datasets)):

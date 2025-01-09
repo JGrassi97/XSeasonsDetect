@@ -1,11 +1,13 @@
 from preprocessing.netcdf_preprocess_CDO import *
 
 
+
 def main():
 
     folders = os.listdir('data/raw/ERA5')
 
     print('The following folders will be processed:')
+
     # Create a nicely formatted string
     formatted_output = '\n'.join([f'    - {fold}' for fold in folders])
 
@@ -46,20 +48,17 @@ def main():
 
             if answer.lower() == 'y':
                 os.remove(f'{preprocess_path}/final.nc')
-                standard_preprocess(raw_path, temp_path, preprocess_path, 1968, 2019, target_grid_path, boundary, 15, True, 'final')
+                standard_preprocess(raw_path, temp_path, preprocess_path, 1960, 2020, target_grid_path, boundary, 15, True, 'final')
             
             else:
                 print('Invalid input, skipping folder')
                 continue
         
         else:
-            standard_preprocess(raw_path, temp_path, preprocess_path, 1968, 2019, target_grid_path, boundary, 15, True, 'final')
+            standard_preprocess(raw_path, temp_path, preprocess_path, 1960, 2020, target_grid_path, boundary, 15, True, 'final')
 
 
 
 
 
 
-    # for raw_path, temp_path, preprocess_path in zip(raw_data_paths,temp_data_paths,preprocess_paths):
-
-    #     standard_preprocess(raw_path, temp_path, preprocess_path, 1968, 2019, target_grid_path, world_boundary, 15, True, 'final')
