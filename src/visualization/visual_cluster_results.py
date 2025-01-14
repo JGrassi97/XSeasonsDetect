@@ -49,7 +49,9 @@ def plot_seasons_bk_results(result,
                             hspace=0.7,
                             wspace=0.1,
                             country_boundary=None, 
-                            world_boundary=None) -> plt.subplots:
+                            alpha = 1,
+                            world_boundary=None,
+                            contourf=False) -> plt.subplots:
     """
     Plots seasonal back-kernel (bk) results across clusters in a grid of subplots with custom configurations.
 
@@ -130,7 +132,11 @@ def plot_seasons_bk_results(result,
             lev = np.linspace(lim[0], lim[1], nlevs)
         
         # Plot contour fill for current cluster
-        plot = to_plot.plot(levels=lev, add_colorbar=False, ax=ax, cmap=cmap)    
+        if contourf == True:
+            plot = to_plot.plot.contourf(levels=lev, add_colorbar=False, ax=ax, cmap=cmap, alpha=alpha)
+        
+        else:
+            plot = to_plot.plot(levels=lev, add_colorbar=False, ax=ax, cmap=cmap, alpha=alpha)    
 
         # Apply formatting and optional boundaries
         standard_format_single(plot,

@@ -48,14 +48,14 @@ def main():
 
             if answer.lower() == 'y':
                 os.remove(f'{preprocess_path}/final.nc')
-                standard_preprocess(raw_path, temp_path, preprocess_path, 1960, 2020, target_grid_path, boundary, 15, True, 'final')
+                standard_preprocess(raw_path, temp_path, preprocess_path, 1961, 2019, target_grid_path, boundary, 15, True, 'final')
             
             else:
                 print('Invalid input, skipping folder')
                 continue
         
         else:
-            standard_preprocess(raw_path, temp_path, preprocess_path, 1960, 2020, target_grid_path, boundary, 15, True, 'final')
+            standard_preprocess(raw_path, temp_path, preprocess_path, 1961, 2019, target_grid_path, boundary, 15, True, 'final')
 
 
 

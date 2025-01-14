@@ -14,4 +14,5 @@ authors = [
 [project.scripts]
 XSeas_newproj = "scripts.initialize_project:main"  # Ensure this points to the correct function
 XSeas_preprocessERA = "scripts.preprocess_ERA5_data:main"
+XSeas_preprocessCMIP = "scripts.preprocess_CMIP6_data:main"
 XSeas_cluster = "scripts.clustering:main"

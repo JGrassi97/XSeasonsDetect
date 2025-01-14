@@ -38,21 +38,24 @@ def main():
 
     # Load the settings
     with open(setting_file, 'r') as file:
+        print('Loading settings')
         settings = yaml.load(file, Loader=yaml.FullLoader)
     
     # Load variables as stored in the settings['parameters']
     variables = settings['parameters']['variables']
     variable_codes = settings['parameters']['variable_code']
 
+    print(variables, variable_codes)
     datasets = []
 
+
     for variable, code in zip(variables, variable_codes):
+
         dataset = xr.open_mfdataset(variable)[code].load()
         print(variable)
         if args.start is not None and args.end is not None:
             dataset = dataset.sel(time=slice(f'{args.start}', f'{args.end}'))
         datasets.append(dataset)
-        print(datasets)
     
     # Standardize the datasets time as the one of the first dataset
     for i in range(1, len(datasets)):
