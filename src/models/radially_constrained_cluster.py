@@ -28,20 +28,17 @@ class Radially_Constrained_Cluster(object):
 
         '''
 
-        # Establishing the len of the serie
         self.len_serie = np.size(data_to_cluster,axis=0)
         self.data_to_cluster = data_to_cluster
-
         self.starting_bp = starting_bp
 
-        # Check parameter consistancy
+        # Check len_serie-n_seas-min_len consistancy
         if self.len_serie/n_seas < min_len:
             raise ValueError(f'Cannot create {n_seas} season of {min_len} days. Please check your input parameters')
         else:
             self.n_seas = n_seas
             self.min_len = min_len
 
-        # Setting parameters
         self.n_iter = n_iter
         self.learning_rate = learning_rate
         self.scheduling_factor = scheduling_factor
@@ -76,7 +73,6 @@ class Radially_Constrained_Cluster(object):
         error_list = []
         learningrate_list = []
         
-
         # Main loop
         for j in range(self.n_iter):
 

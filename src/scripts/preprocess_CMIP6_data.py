@@ -50,24 +50,26 @@ def main():
 
                 if os.path.exists(f'{preprocess_path}/final.nc'):
 
-                    print(f'\n{model} - {scenario} - {variable} already processed, do you want to overwrite it?')
-                    answer = input('Y/N: ')
+                    # print(f'\n{model} - {scenario} - {variable} already processed, do you want to overwrite it?')
+                    # answer = input('Y/N: ')
 
-                    if answer.lower() == 'n':
-                        continue
+                    # if answer.lower() == 'n':
+                    #     continue
 
-                    if answer.lower() == 'y':
-                        os.remove(f'{preprocess_path}/final.nc')
+                    # if answer.lower() == 'y':
+                    #     os.remove(f'{preprocess_path}/final.nc')
 
-                        if scenario == 'historical':
-                            standard_preprocess(raw_path, temp_path, preprocess_path, 1950, 2015, target_grid_path, boundary, 15, True, 'final')
+                    #     if scenario == 'historical':
+                    #         standard_preprocess(raw_path, temp_path, preprocess_path, 1950, 2015, target_grid_path, boundary, 15, True, 'final')
                         
-                        else:
-                            standard_preprocess(raw_path, temp_path, preprocess_path, 2014, 2100, target_grid_path, boundary, 15, True, 'final')
+                    #     else:
+                    #         standard_preprocess(raw_path, temp_path, preprocess_path, 2014, 2100, target_grid_path, boundary, 15, True, 'final')
                     
-                    else:
-                        print('Invalid input, skipping folder')
-                        continue
+                    # else:
+                    #     print('Invalid input, skipping folder')
+                    #     continue
+
+                    continue
                 
                 else:
                     
