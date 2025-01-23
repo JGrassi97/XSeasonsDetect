@@ -113,7 +113,7 @@ def train_single(X, Y, model=None):
 
 
 
-def train(data, model = None):
+def train(data, n_features ,model = None):
 
     r2 = np.zeros((np.shape(data)[0], np.shape(data)[1]))
     mse = np.zeros((np.shape(data)[0], np.shape(data)[1]))
@@ -123,8 +123,8 @@ def train(data, model = None):
     for j in tqdm(range(np.shape(data)[0])):
         for i in range(np.shape(data)[1]):
             
-            x = data[j,i,:,0:2]
-            y = data[j,i,:,3]
+            x = data[j,i,:,0:n_features-1]
+            y = data[j,i,:,n_features]
 
             res = train_single(x, y, model=model)
 
@@ -145,7 +145,7 @@ def predict(X, model):
 
 
 
-def predict_custom(array_res, datarray_model):
+def predict_custom(array_res, n_features, datarray_model):
 
     predictions = np.zeros((np.shape(array_res)[0], np.shape(array_res)[1], np.shape(array_res)[2]))
 
@@ -155,7 +155,7 @@ def predict_custom(array_res, datarray_model):
         for j in range(np.shape(array_res)[1]):
             
             model = models[i,j]
-            x = array_res[j,i,:,0:2]
+            x = array_res[j,i,:,0:n_features-1]
 
             try:
                 predictions[i,j,:] = predict(x, model)

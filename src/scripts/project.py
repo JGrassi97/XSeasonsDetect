@@ -108,15 +108,25 @@ def main():
     # Project dataset
 
     # Load settings 
-    proj_paths = settings['parameters_projetions']['variables']
+    variables = settings['parameters_projetions']['variables']
     proj_codes = settings['parameters_projetions']['variable_code']
+    proj_path = settings['parameters_projetions']['model_path'][0]
 
+    n_features = len(variables)
+
+    # Creazione dei percorsi per i file di proiezione
+    proj_paths = []
+    for scenario in ['historical','ssp585']:
+        for variable in variables:
+            path = os.path.join(proj_path, scenario, variable, 'final.nc')
+            proj_paths.append(path)
 
     dataset_proj = xr.merge([xr.open_dataset(path)[code] for path, code in zip(proj_paths, proj_codes)]).mean('plev')
 
 
     #dataset_res = (dataset_res - dataset_res.min(dim='time')) / (dataset_res.max(dim='time') - dataset_res.min(dim='time'))
-    dataset_proj = (dataset_proj - dataset_proj.mean(dim='time')) / dataset_proj.std(dim='time')
+    dataset_proj_norm = dataset_proj.sel(time=slice('1961', '2019'))
+    dataset_proj = (dataset_proj - dataset_proj_norm.mean(dim='time')) / dataset_proj_norm.std(dim='time')
 
     data = array_train
 
@@ -126,6 +136,8 @@ def main():
 
     model_name = settings['parameters_projetions']["model"]["name"]
     model_params = settings['parameters_projetions']["model"].get("params", {})
+
+    scenario_model = settings['parameters_projetions']['scenario_model']
 
     # Mappatura dei modelli disponibili
     MODELS = {
@@ -146,7 +158,7 @@ def main():
 
 
 
-    mse, r2, models = train(data, model=model)
+    mse, r2, models = train(data, n_features, model=model)
 
     dataset_model = xr.Dataset(
         {
@@ -171,13 +183,13 @@ def main():
     dataset_model.r2.attrs['long_name'] = 'R2 Score'
     #dataset_model.model.attrs['long_name'] = 'Model'
 
-    dataset_model.to_netcdf(os.path.join(os.getcwd(),'results', 'files', f'{name}_{model_name}_projection_training.nc'))
+    dataset_model.to_netcdf(os.path.join(os.getcwd(),'results', 'files', f'{name}_{model_name}_projection_training_{scenario_model[0]}.nc'))
 
 
 
 
     array_res  = dataset_proj.to_array().values.transpose()
-    predictions = predict_custom(array_res, models)
+    predictions = predict_custom(array_res, n_features, models)
 
 
 
@@ -194,4 +206,4 @@ def main():
         name="predictions",
     )
 
-    predictions_xr.to_netcdf(os.path.join(os.getcwd(),'results', 'files', f'{name}_{model_name}_projection_prediction.nc'))
+    predictions_xr.to_netcdf(os.path.join(os.getcwd(),'results', 'files', f'{name}_{model_name}_projection_prediction_{scenario_model[0]}.nc'))
