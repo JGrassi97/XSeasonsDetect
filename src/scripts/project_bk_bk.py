@@ -100,23 +100,10 @@ def rolling_zscore_complete(da, window_size=30):
     return zscore_da
 
 
-# Funzione per calcolare i percentili su un Dataset
-def compute_percentiles(ds, percentiles=[10, 50, 90]):
-    return xr.Dataset(
-        {var: xr.DataArray(np.nanpercentile(ds[var], q=percentiles, axis=0), 
-                           dims=["quantile", "lat", "lon"]) 
-         for var in ds}
-    )
-
-
-# Normalizzazione
-def normalize(ds):
-    return (ds - ds.mean(dim='dayofyear')) / ds.std(dim='dayofyear')
 
 
 def main():
-    
-    percentiles = [5, 10, 25, 50, 75, 90, 95]
+
     # Initialize the parser
     parser = argparse.ArgumentParser(description='Perform a projection analysis with XSeasonsDetect')
     
@@ -160,22 +147,21 @@ def main():
     dataset_train = []
 
     for path, code in zip(train_paths, train_codes):
-        dat = xr.open_dataset(path)[code].sel(time=slice('1971','2020')).groupby('time.dayofyear').apply(lambda x: xr.DataArray(np.nanpercentile(x, q=percentiles, axis=0), dims=["quantile", "lat", "lon"])).rename(code)
-        #dat = rolling_doy_complete(dat, window_size=15)
+        dat = xr.open_dataset(path)[code]
+        dat = rolling_doy_complete(dat, window_size=15)
         #dat = rolling_zscore_complete(dat, window_size=365)
         dataset_train.append(dat)
 
-    # if len(dataset_train) > 1:
+    if len(dataset_train) > 1:
         
-    #     for j in range(1, len(dataset_train)):
-    #         dataset_train[j]['time'] = dataset_train[0]['time']
+        for j in range(1, len(dataset_train)):
+            dataset_train[j]['time'] = dataset_train[0]['time']
 
-    dataset_train = xr.merge(dataset_train)
-    dataset_train = (dataset_train - dataset_train.mean(dim='dayofyear')) / dataset_train.std(dim='dayofyear')
+    dataset_train = xr.merge(dataset_train).sel(time=slice('1971','2000'))
 
-    array_train  = dataset_train.to_array().to_numpy()
-    array_train = np.transpose(array_train, (2, 3, 1, 0, 4))  # Ora ha forma (36, 36, 365, 4, 3)
-    array_train = array_train.reshape(36, 36, 365, 4 * len(percentiles))  # Ora ha forma (36, 36, 365, 12)
+    dataset_train = (dataset_train - dataset_train.mean(dim='time')) / dataset_train.std(dim='time')
+    #dataset_train = (dataset_train - dataset_train.min(dim='time')) / (dataset_train.max(dim='time') - dataset_train.min(dim='time'))
+    array_train  = dataset_train.to_array().values.transpose().reshape(36,36,365,30*4, order='F')
 
     index_values = dates_clust.values
     index_values_expanded = np.expand_dims(index_values, axis=-1)  # (5,5,365,1) 
@@ -215,34 +201,15 @@ def main():
     dataset_proj = xr.merge(dataset_proj)
 
 
-    # Selezione degli intervalli temporali e calcolo dei percentili
-    dataset_proj_0 = dataset_proj.sel(time=slice('1971','2000')).groupby('time.dayofyear').map(lambda ds: compute_percentiles(ds, percentiles=percentiles))
-    dataset_proj_1 = dataset_proj.sel(time=slice('1981','2010')).groupby('time.dayofyear').map(lambda ds: compute_percentiles(ds, percentiles=percentiles))
-    dataset_proj_2 = dataset_proj.sel(time=slice('1991','2020')).groupby('time.dayofyear').map(lambda ds: compute_percentiles(ds, percentiles=percentiles))
-    dataset_proj_3 = dataset_proj.sel(time=slice('2001','2030')).groupby('time.dayofyear').map(lambda ds: compute_percentiles(ds, percentiles=percentiles))
-    dataset_proj_4 = dataset_proj.sel(time=slice('2011','2040')).groupby('time.dayofyear').map(lambda ds: compute_percentiles(ds, percentiles=percentiles))
-    dataset_proj_5 = dataset_proj.sel(time=slice('2021','2050')).groupby('time.dayofyear').map(lambda ds: compute_percentiles(ds, percentiles=percentiles))
-    dataset_proj_6 = dataset_proj.sel(time=slice('2031','2060')).groupby('time.dayofyear').map(lambda ds: compute_percentiles(ds, percentiles=percentiles))
-    dataset_proj_7 = dataset_proj.sel(time=slice('2041','2070')).groupby('time.dayofyear').map(lambda ds: compute_percentiles(ds, percentiles=percentiles))
-    dataset_proj_8 = dataset_proj.sel(time=slice('2051','2080')).groupby('time.dayofyear').map(lambda ds: compute_percentiles(ds, percentiles=percentiles))
-    dataset_proj_9 = dataset_proj.sel(time=slice('2061','2090')).groupby('time.dayofyear').map(lambda ds: compute_percentiles(ds, percentiles=percentiles))
-    dataset_proj_10 = dataset_proj.sel(time=slice('2071','2099')).groupby('time.dayofyear').map(lambda ds: compute_percentiles(ds, percentiles=percentiles))
-    #dataset_proj_11 = dataset_proj.sel(time=slice('2081','2090')).groupby('time.dayofyear').map(lambda ds: compute_percentiles(ds, percentiles=percentiles))
-    #dataset_proj_12 = dataset_proj.sel(time=slice('2091','2100')).groupby('time.dayofyear').map(lambda ds: compute_percentiles(ds, percentiles=percentiles))
+    dataset_proj_0 = dataset_proj.sel(time=slice('1971','2000'))
+    dataset_proj_1 = dataset_proj.sel(time=slice('2016','2045'))
+    dataset_proj_2 = dataset_proj.sel(time=slice('2041','2070'))
+    dataset_proj_3 = dataset_proj.sel(time=slice('2070','2099'))
 
-    dataset_proj_0 = normalize(dataset_proj_0)
-    dataset_proj_1 = normalize(dataset_proj_1)
-    dataset_proj_2 = normalize(dataset_proj_2)
-    dataset_proj_3 = normalize(dataset_proj_3)
-    dataset_proj_4 = normalize(dataset_proj_4)
-    dataset_proj_5 = normalize(dataset_proj_5)
-    dataset_proj_6 = normalize(dataset_proj_6)
-    dataset_proj_7 = normalize(dataset_proj_7)
-    dataset_proj_8 = normalize(dataset_proj_8)
-    dataset_proj_9 = normalize(dataset_proj_9)
-    dataset_proj_10 = normalize(dataset_proj_10)
-    #dataset_proj_11 = normalize(dataset_proj_11)
-    #dataset_proj_12 = normalize(dataset_proj_12)
+    dataset_proj_0 = (dataset_proj_0 - dataset_proj_0.mean(dim='time')) / dataset_proj_0.std(dim='time')
+    dataset_proj_1 = (dataset_proj_1 - dataset_proj_1.mean(dim='time')) / dataset_proj_1.std(dim='time')
+    dataset_proj_2 = (dataset_proj_2 - dataset_proj_2.mean(dim='time')) / dataset_proj_2.std(dim='time')
+    dataset_proj_3 = (dataset_proj_3 - dataset_proj_3.mean(dim='time')) / dataset_proj_3.std(dim='time')
 
     data = array_train
 
@@ -274,7 +241,7 @@ def main():
     # model = MODELS[model_name](**model_params)
 
 
-    mse, r2, models, histories = train_perceptron(data, 4 * len(percentiles), 4, epochs=100, n_year_training=1)
+    mse, r2, models, histories = train_perceptron(data, 120, 4, epochs=50, n_year_training=1)
 
     # dataset_model = xr.Dataset(
     #     {
@@ -305,21 +272,18 @@ def main():
 
 
     predictions = []
-    for dat in [dataset_proj_0, dataset_proj_1, dataset_proj_2, dataset_proj_3, dataset_proj_4, dataset_proj_5, dataset_proj_6, dataset_proj_7, dataset_proj_8, dataset_proj_9, dataset_proj_10]:
+    for dat in [dataset_proj_0, dataset_proj_1, dataset_proj_2, dataset_proj_3]:
 
-        array_res = dat.to_array().to_numpy()
-        array_res = np.transpose(array_res, (3, 4, 1, 0, 2))
-        array_res = array_res.reshape(36, 36, 365, 4 * len(percentiles))
-        mod_res = predict_custom(array_res, 4 * len(percentiles), models)
-        predictions.append(mod_res)
+        array_res  = dat.to_array().values.transpose().reshape(36,36,365,30*4, order='F')
+        predictions.append(predict_custom(array_res, 120, models))
 
 
 
-    predictions_tot = np.array(predictions).transpose((1,2,3,0)).reshape(36,36,365*11, order='F')
+    predictions_tot = np.array(predictions).transpose((1,2,3,0)).reshape(36,36,365*4)
     print(predictions_tot.shape)
 
     # Lista degli anni desiderati
-    years = [1995, 2005, 2015, 2025, 2035, 2045, 2055, 2065, 2075, 2085, 2095]
+    years = [1985, 2030, 2055, 2085]
 
     # Genera le date per ciascun anno
     date_list = [pd.date_range(f"{year}-01-01", f"{year}-12-31") for year in years]
